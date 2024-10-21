@@ -4,182 +4,265 @@ from tkinter import ttk
 import psycopg2
 from datetime import datetime
 
-window = tk.Tk()
-window.title("Thực phẩm")
+# window = tk.Tk()
+# window.title("Thực phẩm")
 
 #Kết nối csdl
-conn = psycopg2.connect(
-host ="localhost" ,
-database = "dinhduong2",
-user = "postgres",
-password = "1",
-port = "5432")
-messagebox.showinfo("Success", f"Kết nối cơ sở dữ liệu thành công")
+# conn = psycopg2.connect(
+# host ="localhost" ,
+# database = "dinhduong2",
+# user = "postgres",
+# password = "1",
+# port = "5432")
+# messagebox.showinfo("Success", f"Kết nối cơ sở dữ liệu thành công")
 
-cur = conn.cursor()
+# cur = conn.cursor()
 
+def main_window():
+    global window, cur, conn
+    window = tk.Tk()
+    window.title("Thực phẩm")
+    menubar = tk.Menu(window)
+    window.configure(bg='#F0F8FF') 
 
-#Clear mọi thứ đã nhập khi lỗi xảy ra
-def clear_entries():
-    entry_ID.delete(0, tk.END)
-    entry_tensp.delete(0, tk.END)
-    combobox_loaisp.delete(0, tk.END)
-    combobox_vitamin.delete(0, tk.END)
-    entry_dactri.delete(0, tk.END)
+    file_menu = tk.Menu(menubar, tearoff=0)
+    file_menu.add_command(label="New", command=lambda: messagebox.showinfo("New", "Create a new file"))
+    file_menu.add_command(label="Open", command=lambda: messagebox.showinfo("Open", "Open an existing file"))
+    file_menu.add_separator()  # Add a separator
+    file_menu.add_command(label="Exit", command=window.quit)  # Exit menu item
 
-#Như nút F5
-def load_data():
-    for item in tree.get_children():
-        tree.delete(item)
+    menubar.add_cascade(label="File", menu=file_menu)
 
-    cur.execute("SELECT * FROM setthucpham")
-    rows = cur.fetchall()
+    edit_menu = tk.Menu(menubar, tearoff=0)
+    edit_menu.add_command(label="Cut", command=lambda: messagebox.showinfo("Cut", "Cut selected text"))
+    edit_menu.add_command(label="Copy", command=lambda: messagebox.showinfo("Copy", "Copy selected text"))
+    edit_menu.add_command(label="Paste", command=lambda: messagebox.showinfo("Paste", "Paste from clipboard"))
 
-    for row in rows:
-        tree.insert("", tk.END, values=row)
+    menubar.add_cascade(label="Edit", menu=edit_menu)
 
-#Them sp
-def them_sp():
-    id_sanpham = entry_ID.get()
-    tensp = entry_tensp.get()
-    loaisp = combobox_loaisp.get()
-    vitamin = combobox_vitamin.get()
-    dactri = entry_dactri.get()
-    current_time = datetime.now() #cap nhat ngay gio
-    if not (id_sanpham and tensp and loaisp and vitamin and dactri):
-        messagebox.showwarning("Cảnh báo", "Vui lòng nhập đầy đủ thông tin.")
-        return
+    help_menu = tk.Menu(menubar, tearoff=0)
+    help_menu.add_command(label="About", command=lambda: messagebox.showinfo("About", "Information about this app"))
     
-    try: 
-        cur.execute("SELECT * FROM setthucpham WHERE id = %s", (id_sanpham,))   #check id tồn tại chưa
-        kiem_tra = cur.fetchone()
-        if kiem_tra:
-            messagebox.showwarning("Lưu ý", f"ID '{id_sanpham}' đã tồn tại. Vui lòng nhập ID khác.")
-            return
-        #check xong thi them moi
-        cur.execute("INSERT INTO setthucpham (id, tensp, loaisp, vitamin, dactri, timecreate) VALUES (%s ,%s, %s, %s, %s, %s)",(id_sanpham, tensp, loaisp, vitamin, dactri, current_time))
-        conn.commit()
-        print("Thêm thành công")
-        messagebox.showinfo("Thành công", "Thêm sản phẩm thành công")
+    menubar.add_cascade(label="Help", menu=help_menu)
 
-    except Exception as e:
-        messagebox.showerror("Thất bại", f"Vui lòng thêm lại sản phẩm. Chi tiết lỗi: {str(e)}")
+    window.config(menu=menubar)
 
-    clear_entries()
-    load_data()
+    #Clear mọi thứ đã nhập khi lỗi xảy ra
+    def clear_entries():
+        entry_ID.delete(0, tk.END)
+        entry_tensp.delete(0, tk.END)
+        combobox_loaisp.delete(0, tk.END)
+        combobox_vitamin.delete(0, tk.END)
+        entry_dactri.delete(0, tk.END)
 
-#Show all san pham
-def hienthi_sp():
-    for row in tree.get_children():
-        tree.delete(row)
-    try:
+    #Như nút F5
+    def load_data():
+        for item in tree.get_children():
+            tree.delete(item)
+
         cur.execute("SELECT * FROM setthucpham")
         rows = cur.fetchall()
-    
+
         for row in rows:
             tree.insert("", tk.END, values=row)
-    except psycopg2.Error as e:
-        messagebox.showerror("Lỗi", f"Không thể truy vấn dữ liệu. Chi tiết lỗi: {str(e)}")
-        conn.rollback()  #Tự động hủy lệnh gửi lên sql khi xảy ra lỗi và back lại bước trước đó
 
-#Xoa sp đã thêm
-def xoa_sp():
-    selected_item = tree.focus()
-    if not selected_item:
-        messagebox.showwarning("Cảnh báo", "Vui lòng chọn một sản phẩm để xóa.")
-        return
-
-    confirm = messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa sản phẩm này?")
-    if confirm:
-        id_sanpham = tree.item(selected_item, 'values')[0]
-        try:
-            cur.execute("DELETE FROM setthucpham WHERE id=%s", (id_sanpham,))
+    #Them sp
+    def them_sp():
+        id_sanpham = entry_ID.get()
+        tensp = entry_tensp.get()
+        loaisp = combobox_loaisp.get()
+        vitamin = combobox_vitamin.get()
+        dactri = entry_dactri.get()
+        current_time = datetime.now() #cap nhat ngay gio
+        if not (id_sanpham and tensp and loaisp and vitamin and dactri):
+           messagebox.showwarning("Cảnh báo", "Vui lòng nhập đầy đủ thông tin.")
+           return
+    
+        try: 
+            cur.execute("SELECT * FROM setthucpham WHERE id = %s", (id_sanpham,))   #check id tồn tại chưa
+            kiem_tra = cur.fetchone()
+            if kiem_tra:
+                messagebox.showwarning("Lưu ý", f"ID '{id_sanpham}' đã tồn tại. Vui lòng nhập ID khác.")
+                return
+        #check xong thi them moi
+            cur.execute("INSERT INTO setthucpham (id, tensp, loaisp, vitamin, dactri, timecreate) VALUES (%s ,%s, %s, %s, %s, %s)",(id_sanpham, tensp, loaisp, vitamin, dactri, current_time))
             conn.commit()
-            print("Xóa thành công")
-            messagebox.showinfo("Thành công", "Xóa sản phẩm thành công!")
+            print("Thêm thành công")
+            messagebox.showinfo("Thành công", "Thêm sản phẩm thành công")
+
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể xóa sản phẩm. Chi tiết lỗi: {str(e)}")
+            messagebox.showerror("Thất bại", f"Vui lòng thêm lại sản phẩm. Chi tiết lỗi: {str(e)}")
+
+        clear_entries()
         load_data()
 
-#Update san pham
-def capnhat_sp():
-    product_id = entry_ID.get()
-    tensp = entry_tensp.get()
-    loaisp = combobox_loaisp.get()
-    vitamin = combobox_vitamin.get()
-    dactri = entry_dactri.get()
-    current_time = datetime.now() #cap nhat ngay gio
+    #Show all san pham
+    def hienthi_sp():
+        for row in tree.get_children():
+            tree.delete(row)
+        try:
+            cur.execute("SELECT * FROM setthucpham")
+            rows = cur.fetchall()
+    
+            for row in rows:
+                tree.insert("", tk.END, values=row)
+        except psycopg2.Error as e:
+            messagebox.showerror("Lỗi", f"Không thể truy vấn dữ liệu. Chi tiết lỗi: {str(e)}")
+            conn.rollback()  #Tự động hủy lệnh gửi lên sql khi xảy ra lỗi và back lại bước trước đó
 
-    if not (product_id and tensp and loaisp and vitamin and dactri):
-        messagebox.showwarning("Cảnh báo", "Vui lòng nhập đầy đủ thông tin.")
-        return
+    #Xoa sp đã thêm
+    def xoa_sp():
+        selected_item = tree.focus()
+        if not selected_item:
+            messagebox.showwarning("Cảnh báo", "Vui lòng chọn một sản phẩm để xóa.")
+            return
 
-    try :
-        cur.execute("UPDATE setthucpham SET tensp = %s, loaisp = %s, vitamin = %s, dactri = %s, timeupdate = %s WHERE ID = %s", (tensp, loaisp, vitamin, dactri, current_time, product_id))
-        conn.commit()
-        print("Cập nhật thành công")
-        messagebox.showinfo("Thành công", "Cập nhật sản phẩm thành công")
-    except psycopg2.Error as e:
-        messagebox.showerror("Lỗi", f"Vui lòng kiểm tra lại. Chi tiết lỗi: {str(e)}")
-        conn.rollback() #tự động hủy lệnh gửi lên sql khi xảy ra lỗi và back lại bước trước đó
-    clear_entries()
-    load_data()
+        confirm = messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa sản phẩm này?")
+        if confirm:
+            id_sanpham = tree.item(selected_item, 'values')[0]
+            try:
+                cur.execute("DELETE FROM setthucpham WHERE id=%s", (id_sanpham,))
+                conn.commit()
+                print("Xóa thành công")
+                messagebox.showinfo("Thành công", "Xóa sản phẩm thành công!")
+            except Exception as e:
+                messagebox.showerror("Lỗi", f"Không thể xóa sản phẩm. Chi tiết lỗi: {str(e)}")
+            load_data()
+
+    #Update san pham
+    def capnhat_sp():
+        product_id = entry_ID.get()
+        tensp = entry_tensp.get()
+        loaisp = combobox_loaisp.get()
+        vitamin = combobox_vitamin.get()
+        dactri = entry_dactri.get()
+        current_time = datetime.now() #cap nhat ngay gio
+
+        if not (product_id and tensp and loaisp and vitamin and dactri):
+            messagebox.showwarning("Cảnh báo", "Vui lòng nhập đầy đủ thông tin.")
+            return
+
+        try :
+            cur.execute("UPDATE setthucpham SET tensp = %s, loaisp = %s, vitamin = %s, dactri = %s, timeupdate = %s WHERE ID = %s", (tensp, loaisp, vitamin, dactri, current_time, product_id))
+            conn.commit()
+            print("Cập nhật thành công")
+            messagebox.showinfo("Thành công", "Cập nhật sản phẩm thành công")
+        except psycopg2.Error as e:
+            messagebox.showerror("Lỗi", f"Vui lòng kiểm tra lại. Chi tiết lỗi: {str(e)}")
+            conn.rollback() #tự động hủy lệnh gửi lên sql khi xảy ra lỗi và back lại bước trước đó
+        clear_entries()
+        load_data()
+    def tim_kiem_sp():
+        search_term = entry_search.get()
+        if not search_term:
+            messagebox.showwarning("Lỗi", "Vui lòng nhập tên sản phẩm để tìm kiếm.")
+            return
+
+        tree.delete(*tree.get_children())
+        cur.execute("SELECT * FROM setthucpham WHERE LOWER(tensp) LIKE %s", ('%' + search_term.lower() + '%',))
+        rows = cur.fetchall()
+    
+        if rows:
+            for row in rows:
+                tree.insert("", tk.END, values=row)
+        else:
+            messagebox.showinfo("Kết quả", "Không tìm thấy sản phẩm.")
  
-#Input
-tk.Label(window, width=13, text="ID").grid(row=0, column=0)
-entry_ID = tk.Entry(window)
-entry_ID.grid(row=0, column=1)
+    #Input
+    tk.Label(window, width=13, text="ID").grid(row=0, column=0)
+    entry_ID = tk.Entry(window)
+    entry_ID.grid(row=0, column=1)
 
-tk.Label(window, text="Tên thực phẩm").grid(row=1, column=0)
-entry_tensp = tk.Entry(window)
-entry_tensp.grid(row=1, column=1)
+    tk.Label(window, text="Tên thực phẩm").grid(row=1, column=0)
+    entry_tensp = tk.Entry(window)
+    entry_tensp.grid(row=1, column=1)
 
-tk.Label(window, text="Loại").grid(row=2, column=0)
-combobox_loaisp = ttk.Combobox(window, width=17, values=["Rau", "Trái cây", "Thịt", "Cá", "Nhân sâm", "Khác"], state="readonly")
-combobox_loaisp.grid(row=2, column=1)
+    tk.Label(window, text="Loại").grid(row=2, column=0)
+    combobox_loaisp = ttk.Combobox(window, width=17, values=["Rau", "Trái cây", "Thịt", "Cá", "Nhân sâm", "Khác"], state="readonly")
+    combobox_loaisp.grid(row=2, column=1)
 
-tk.Label(window, text="Vitamin cung ứng").grid(row=3, column=0)
-combobox_vitamin = ttk.Combobox(window, width=17, values=["Vitamin A", "Vitamin D", "Vitamin E", "Vitamin K", "Vitamin B1", "Vitamin B2", "Vitamin B3","Vitamin B5", "Vitamin B6", "Vitamin B7", "Vitamin B9", "Vitamin B12","Vitamin C", "Khác"], state="readonly")
-combobox_vitamin.grid(row=3, column=1)
+    tk.Label(window, text="Vitamin cung ứng").grid(row=3, column=0)
+    combobox_vitamin = ttk.Combobox(window, width=17, values=["Vitamin A", "Vitamin D", "Vitamin E", "Vitamin K", "Vitamin B1", "Vitamin B2", "Vitamin B3","Vitamin B5", "Vitamin B6", "Vitamin B7", "Vitamin B9", "Vitamin B12","Vitamin C", "Khác"], state="readonly")
+    combobox_vitamin.grid(row=3, column=1)
 
-tk.Label(window, text="Trị bệnh").grid(row=4, column=0)
-entry_dactri = tk.Entry(window)
-entry_dactri.grid(row=4, column=1)
-
-#Feature
-tk.Button(window, width=15, text="Thêm sản phẩm", command=them_sp).grid(row=0, column=2)
-tk.Button(window, width=15, text="Cập nhật sản phẩm", command=capnhat_sp).grid(row=1, column=2)
-tk.Button(window, width=15, text="Xóa sản phẩm", command=xoa_sp).grid(row=2, column=2)
-tk.Button(window, width=15, text="Hiển thị sản phẩm", command=hienthi_sp).grid(row=3, column=2)
-
-#Chia cột bảng data
-tree = ttk.Treeview(window, columns=("ID", "tensp", "loaisp", "vitamin", "dactri", "time_tao", "time_update"), show="headings", height=20)
-tree.grid(row=7, column=0, columnspan=3)
-
-#Tiêu đề
-tree.heading("ID", text="ID")
-tree.heading("tensp", text="Tên sản phẩm")
-tree.heading("loaisp", text="Loại sản phẩm")
-tree.heading("vitamin", text="Vitamin cung ứng")
-tree.heading("dactri", text="Trị bệnh")
-tree.heading("time_tao", text="Thời gian thêm")
-tree.heading("time_update", text="Thời gian cập nhật")
-
-tree.column("ID", width=30)
-tree.column("tensp", width=100)
-tree.column("loaisp", width=90)
-tree.column("vitamin", width=150)
-tree.column("dactri", width=100)
-tree.column("time_tao", width=110)
-tree.column("time_update", width=110)
-
-
-entry_ID.focus_set()
-
-window.mainloop()
-
-#Đóng kết nối
-cur.close()
-conn.close()
+    tk.Label(window, text="Trị bệnh").grid(row=4, column=0)
+    entry_dactri = tk.Entry(window)
+    entry_dactri.grid(row=4, column=1)
 
     
+
+    #Feature
+    tk.Button(window, width=15, text="Thêm sản phẩm", command=them_sp).grid(row=0, column=2, padx = 3, pady= 3)
+    tk.Button(window, width=15, text="Cập nhật sản phẩm", command=capnhat_sp).grid(row=1, column=2, padx = 3, pady= 3)
+    tk.Button(window, width=15, text="Xóa sản phẩm", command=xoa_sp).grid(row=2, column=2, padx = 3, pady= 3)
+    tk.Button(window, width=15, text="Hiển thị sản phẩm", command=hienthi_sp).grid(row=3, column=2, padx = 3, pady= 3)
+    entry_search = tk.Entry(window)
+    entry_search.grid(row=5, column=2, padx=5, pady=5)
+    tk.Button(window, width=15, text="Tìm kiếm", command=tim_kiem_sp).grid(row=4, column=2, padx=5, pady=5)
+
+
+    #Chia cột bảng data
+    tree = ttk.Treeview(window, columns=("ID", "tensp", "loaisp", "vitamin", "dactri", "time_tao", "time_update"), show="headings", height=20)
+    tree.grid(row=7, column=0, columnspan=4, pady=10)
+
+    #Tiêu đề 
+    tree.heading("ID", text="ID")
+    tree.heading("tensp", text="Tên sản phẩm")
+    tree.heading("loaisp", text="Loại sản phẩm")
+    tree.heading("vitamin", text="Vitamin cung ứng")
+    tree.heading("dactri", text="Trị bệnh")
+    tree.heading("time_tao", text="Thời gian thêm")
+    tree.heading("time_update", text="Thời gian cập nhật")
+
+    tree.column("ID", width=30, anchor = 'center')
+    tree.column("tensp", width=100)
+    tree.column("loaisp", width=100)
+    tree.column("vitamin", width=110)
+    tree.column("dactri", width=100) 
+    tree.column("time_tao", width=135)
+    tree.column("time_update", width=135)
+
+    entry_ID.focus_set()
+    window.mainloop()
+
+# Hàm kiểm tra đăng nhập
+def check_login(username, password):
+    try:
+        global conn, cur
+        conn = psycopg2.connect(
+            host="localhost",
+            database="dinhduong2",
+            user=username,
+            password=password,
+            port="5432"
+        )
+        cur = conn.cursor()
+        messagebox.showinfo("Thành công", "Đăng nhập thành công!")
+        login_window.destroy()  # Đóng cửa sổ login sau khi thành công
+        main_window()  # Mở cửa sổ chính
+
+    except Exception as e:
+        messagebox.showerror("Lỗi", f"Không thể kết nối cơ sở dữ liệu. Chi tiết: {str(e)}")
+
+# Cửa sổ login
+login_window = tk.Tk()
+login_window.title("Đăng nhập cơ sở dữ liệu")
+
+tk.Label(login_window, text="Tên đăng nhập").grid(row=0, column=0, padx=10, pady=10)
+entry_username = tk.Entry(login_window)
+entry_username.grid(row=0, column=1, padx=10, pady=10)
+
+tk.Label(login_window, text="Mật khẩu").grid(row=1, column=0, padx=10, pady=10)
+entry_password = tk.Entry(login_window, show="*")
+entry_password.grid(row=1, column=1, padx=10, pady=10)
+
+tk.Button(login_window, text="Đăng nhập", command=lambda: check_login(entry_username.get(), entry_password.get())).grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+login_window.mainloop()
+
+
+
+
+
+
+#Them tim kiem + dang luoi khi xuat ban + giao dien + login db (file: test db)
