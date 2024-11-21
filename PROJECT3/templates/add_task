@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm nhiệm vụ mới</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ionicons@5.5.2/dist/css/ionicons.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styletem.css') }}">
+</head>
+<body>
+    <section class="add-task-section">
+        <h1>Thêm nhiệm vụ mới</h1>
+        <form action="{{ url_for('add_task') }}" method="POST" class="task-form">
+            <div class="inputbox">
+                <ion-icon name="paper-plane-outline"></ion-icon>
+                <input type="text" name="title" required>
+                <label for="title">Tiêu đề nhiệm vụ</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="text-outline"></ion-icon>
+                <textarea name="description" rows="4"></textarea>
+                <label for="description">Mô tả</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <input type="date" name="due_date">
+                <label for="due_date">Hạn nhiệm vụ</label>
+            </div>
+            <button type="submit" class="btn btn-submit">Thêm nhiệm vụ</button>
+        </form>
+        
+        <a href="{{ url_for('task_list') }}" class="btn btn-back">Quay về danh sách nhiệm vụ</a>
+    </section>
+</body>
+</html>
