@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ionicons@5.5.2/dist/css/ionicons.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styledk.css') }}">
+    <script type="module" src="https://unpkg.com/ionicons@5.0.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule="" src="https://unpkg.com/ionicons@5.0.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+    <section>
+        <form action="{{ url_for('register') }}" method="POST">
+            <h1>Đăng ký</h1>
+            {% with messages = get_flashed_messages(with_categories=true) %}       
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div class="inputbox">
+                <ion-icon name="mail-outline"></ion-icon>
+                <input type="text" name="username" required>
+                <label for="">Tên đăng nhập</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <input type="password" name="password" required>
+                <label for="">Mật khẩu</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <input type="password" name="confirm_password" required>
+                <label for="">Xác nhận mật khẩu</label>
+            </div>
+            <div class="cotk">
+                <label for=""><input type="checkbox">Đồng ý với các điều khoản</label>
+                <p>Bạn đã có tài khoản? <a href="{{ url_for('login') }}">Đăng nhập ngay.</a>.</p>
+            </div>
+            <button type="submit">Đăng ký</button>
+            
+        </form>
+    <section>
+</body>
+</html>

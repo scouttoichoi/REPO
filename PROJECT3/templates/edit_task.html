@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Task</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ionicons@5.5.2/dist/css/ionicons.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styletem.css') }}">
+</head>
+<body>
+    <section class="add-task-section">
+        <h1>Edit Task</h1>
+        <form action="{{ url_for('edit_task', task_id=task.id) }}" method="POST" class="task-form">
+            <div class="inputbox">
+                <ion-icon name="paper-plane-outline"></ion-icon>
+                <input type="text" name="title" value="{{ task.title }}" required>
+                <label for="title">Tiêu đề nhiệm vụ</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="text-outline"></ion-icon>
+                <textarea name="description" rows="4">{{ task.description }}</textarea>
+                <label for="description">Mô tả</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <input type="date" name="due_date" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}">
+                <label for="due_date">Hạn nhiệm vụ</label>
+            </div>
+            <div class="inputbox">
+                <ion-icon name="checkmark-outline"></ion-icon>
+                <input type="checkbox" name="is_completed" {% if task.is_completed %}checked{% endif %}>
+                <label for="is_completed">Hoàn thành</label>
+            </div>
+            <button type="submit" class="btn btn-submit">Lưu thay đổi</button>
+        </form>
+    </section>
+</body>
+</html>
